@@ -23,36 +23,56 @@ function App() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <EmailGenerator onEmailGenerated={handleEmailGenerated} />
 
-        {error ? (
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="text-center text-red-600">
-              <p className="text-lg font-medium mb-2">Error</p>
-              <p>{error}</p>
-              {error === 'Email address has expired' ? (
-                <button
-                  onClick={() => setCurrentEmail(null)}
-                  className="btn-primary mt-4"
-                >
-                  Generate New Email
-                </button>
-              ) : (
-                <button
-                  onClick={refresh}
-                  className="btn-primary mt-4"
-                >
-                  Try Again
-                </button>
-              )}
+        {error && error === 'Email address has expired' ? (
+          <div className="glass-card p-8 fade-in">
+            <div className="text-center">
+              <div className="mb-4">
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-red-400 mb-2">Email Expired</h3>
+                <p className="text-gray-300 mb-6">Your temporary email has expired. Generate a new one to continue.</p>
+              </div>
+              <button
+                onClick={() => setCurrentEmail(null)}
+                className="btn-primary"
+              >
+                Generate New Email
+              </button>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="glass-card p-8 fade-in">
+            <div className="text-center">
+              <div className="mb-4">
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-red-400 mb-2">Something went wrong</h3>
+                <p className="text-gray-300 mb-6">{error}</p>
+              </div>
+              <button
+                onClick={refresh}
+                className="btn-primary"
+              >
+                Try Again
+              </button>
             </div>
           </div>
         ) : (
-          <EmailList
-            email={currentEmail}
-            messages={messages}
-            loading={loading}
-            expiresAt={expiresAt}
-            onRefresh={refresh}
-          />
+          <div className="fade-in">
+            <EmailList
+              email={currentEmail}
+              messages={messages}
+              loading={loading}
+              expiresAt={expiresAt}
+              onRefresh={refresh}
+            />
+          </div>
         )}
 
         <footer className="mt-8 text-center text-sm text-gray-500">
