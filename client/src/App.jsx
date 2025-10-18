@@ -4,7 +4,23 @@ import EmailList from './components/EmailList';
 import { useEmailPolling } from './hooks/useEmailPolling';
 
 function App() {
-  const [currentEmail, setCurrentEmail] = useState(null);
+  const [currentEmail, setCurrentEmail] = useState(() => {
+    const saved = localStorage.getItem('blackMALE_currentEmail');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Check if email hasn't expired
+        if (new Date(parsed.expiresAt) > new Date()) {
+          return parsed.email;
+        } else {
+          localStorage.removeItem('blackMALE_currentEmail');
+        }
+      } catch (e) {
+        localStorage.removeItem('blackMALE_currentEmail');
+      }
+    }
+    return null;
+  });
 
   const {
     messages,
@@ -14,14 +30,19 @@ function App() {
     refresh
   } = useEmailPolling(currentEmail, !!currentEmail);
 
-  const handleEmailGenerated = (email) => {
-    setCurrentEmail(email);
+  const handleEmailGenerated = (emailData) => {
+    setCurrentEmail(emailData.email);
+    // Save to localStorage with expiration info
+    localStorage.setItem('blackMALE_currentEmail', JSON.stringify(emailData));
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <EmailGenerator onEmailGenerated={handleEmailGenerated} />
+        <EmailGenerator
+          onEmailGenerated={handleEmailGenerated}
+          existingEmail={currentEmail}
+        />
 
         {error && error === 'Email address has expired' ? (
           <div className="glass-card p-8 fade-in">
@@ -36,7 +57,10 @@ function App() {
                 <p className="text-gray-300 mb-6">Your temporary email has expired. Generate a new one to continue.</p>
               </div>
               <button
-                onClick={() => setCurrentEmail(null)}
+                onClick={() => {
+                  setCurrentEmail(null);
+                  localStorage.removeItem('blackMALE_currentEmail');
+                }}
                 className="btn-primary"
               >
                 Generate New Email

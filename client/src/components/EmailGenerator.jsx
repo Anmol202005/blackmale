@@ -3,17 +3,56 @@ import { RefreshCw, Copy, CheckCircle } from 'lucide-react';
 import { emailService } from '../services/api';
 import toast from 'react-hot-toast';
 
-const EmailGenerator = ({ onEmailGenerated }) => {
+const EmailGenerator = ({ onEmailGenerated, existingEmail }) => {
   const [loading, setLoading] = useState(false);
-  const [currentEmail, setCurrentEmail] = useState(null);
+  const [currentEmail, setCurrentEmail] = useState(() => {
+    if (existingEmail) {
+      // If there's an existing email, try to get the full data from localStorage
+      const saved = localStorage.getItem('blackMALE_currentEmail');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.email === existingEmail) {
+            return parsed;
+          }
+        } catch (e) {
+          // Fall back to just the email string
+        }
+      }
+      // If no saved data, create minimal object
+      return { email: existingEmail };
+    }
+    return null;
+  });
   const [copied, setCopied] = useState(false);
+
+  // Update currentEmail when existingEmail prop changes
+  React.useEffect(() => {
+    if (existingEmail && (!currentEmail || currentEmail.email !== existingEmail)) {
+      const saved = localStorage.getItem('blackMALE_currentEmail');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.email === existingEmail) {
+            setCurrentEmail(parsed);
+            return;
+          }
+        } catch (e) {
+          // Fall back to just the email string
+        }
+      }
+      setCurrentEmail({ email: existingEmail });
+    } else if (!existingEmail) {
+      setCurrentEmail(null);
+    }
+  }, [existingEmail, currentEmail]);
 
   const generateEmail = async () => {
     setLoading(true);
     try {
       const data = await emailService.generateAlias();
       setCurrentEmail(data);
-      onEmailGenerated(data.email);
+      onEmailGenerated(data);
       toast.success('New temporary email generated!');
     } catch (error) {
       toast.error('Failed to generate email address');
