@@ -1,0 +1,39 @@
+{
+  "name": "tempmail-backend",
+  "version": "1.0.0",
+  "description": "Temporary email service backend",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "db:migrate": "node src/scripts/migrate.js",
+    "db:seed": "node src/scripts/seed.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "pg": "^8.11.3",
+    "sequelize": "^6.35.2",
+    "redis": "^4.6.12",
+    "axios": "^1.6.2",
+    "node-cron": "^3.0.3",
+    "imap": "^0.8.19",
+    "mailparser": "^3.6.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.3.1",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "temporary",
+    "email",
+    "disposable",
+    "mail"
+  ],
+  "author": "TempMail",
+  "license": "MIT"
+}

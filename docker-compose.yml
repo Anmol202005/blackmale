@@ -1,0 +1,93 @@
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: tempmail
+      POSTGRES_USER: tempmail
+      POSTGRES_PASSWORD: tempmail123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - tempmail-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tempmail -d tempmail"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for session storage and caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - tempmail-network
+
+  # MailHog - Simple SMTP server for testing
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - tempmail-network
+
+  # Backend API Server
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DATABASE_URL=postgresql://tempmail:tempmail123@postgres:5432/tempmail
+      - REDIS_URL=redis://redis:6379
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+      - TEMP_EMAIL_DOMAIN=localhost
+      - USE_MAILHOG=true
+      - EMAIL_LIFETIME_MINUTES=10
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mailhog:
+        condition: service_started
+    networks:
+      - tempmail-network
+    restart: unless-stopped
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:3001
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - tempmail-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  tempmail-network:
+    driver: bridge
